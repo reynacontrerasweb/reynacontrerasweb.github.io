@@ -8,7 +8,8 @@
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   /* ---------- Active nav link (tab-bar + mobile nav) ---------- */
-  var here = (window.location.pathname.split("/").pop() || "index.html");
+  var segs = window.location.pathname.split("/").filter(Boolean);
+  var here = segs.length ? segs[0] : "index";
   document.querySelectorAll("a[data-page]").forEach(function (link) {
     if (link.getAttribute("data-page") === here) link.classList.add("active");
   });
@@ -199,7 +200,7 @@
 
   /* ---------- Datos de contacto dinámicos (editables desde admin.html) ---------- */
   try {
-    fetch("data/contact.json", { cache: "no-store" })
+    fetch("/data/contact.json", { cache: "no-store" })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (data) {
         if (!data) return;
@@ -239,7 +240,7 @@
           form.action = "https://formsubmit.co/" + data.email;
         }
         if (data.photos_version) {
-          document.querySelectorAll('img[src^="images/reyna-green.jpg"], img[src^="images/reyna-black.jpg"]').forEach(function (img) {
+          document.querySelectorAll('img[src^="/images/reyna-green.jpg"], img[src^="/images/reyna-black.jpg"]').forEach(function (img) {
             img.src = img.src.split("?")[0] + "?v=" + data.photos_version;
           });
         }

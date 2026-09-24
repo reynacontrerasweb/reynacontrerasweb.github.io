@@ -238,6 +238,11 @@
         if (form && form.action && form.action.indexOf("formsubmit.co/") !== -1) {
           form.action = "https://formsubmit.co/" + data.email;
         }
+        if (data.photos_version) {
+          document.querySelectorAll('img[src^="images/reyna-green.jpg"], img[src^="images/reyna-black.jpg"]').forEach(function (img) {
+            img.src = img.src.split("?")[0] + "?v=" + data.photos_version;
+          });
+        }
       })
       .catch(function () { /* si falla, la página se queda con los valores fijos actuales */ });
   } catch (err) { /* nunca romper el resto del sitio por esto */ }

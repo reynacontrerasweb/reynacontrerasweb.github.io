@@ -9,7 +9,7 @@
 
       <td style="padding:16px 22px;vertical-align:top;background:#ffffff;" valign="top">
 
-        <div style="font-family:'Jost',Arial,sans-serif;font-size:14px;font-weight:600;color:#24251C;margin-bottom:1px;line-height:1.2;">Ing. Reyna Contreras C., MBA</div>
+        <div style="font-family:'Jost',Arial,sans-serif;font-size:14px;font-weight:600;color:#848763;margin-bottom:1px;line-height:1.2;">Ing. Reyna Contreras C., MBA</div>
         <div style="font-family:'Montserrat',Arial,sans-serif;font-size:7.5px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#A38E36;margin-bottom:10px;">Principal Consultant</div>
 
         <div style="height:1px;background:#D3C7AD;margin-bottom:10px;max-width:300px;"></div>
@@ -76,5 +76,5 @@
           <td style="font-family:'Montserrat',Arial,sans-serif;font-size:7px;color:#6b6a5a;padding-right:10px;">&#9670;</td>
           <td style="font-family:'Montserrat',Arial,sans-serif;font-size:6.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#A38E36;padding-right:14px;white-space:nowrap;">Consultor&iacute;a Financiera</td>
           <td style="font-family:'Montserrat',Arial,sans-serif;font-size:7px;color:#6b6a5a;padding-right:10px;">&#9670;</td>
-          <td style="font-family:'Montserrat',Arial,sans-serif;font-size:6.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#A38E36;white-space:nowrap;padding-right:0;">N&oacute;mina y Talento</td>
+          <td style="font-family:'Montserrat',Arial,sans-serif;font-size:6.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#F8EFE6;white-space:nowrap;padding-right:0;">N&oacute;mina y Talento</td>
         </tr></table>

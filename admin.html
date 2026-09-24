@@ -202,6 +202,9 @@
       fieldWhatsapp.value = data.whatsapp_display || "";
       fieldEmail.value = data.email || "";
       fieldInstagram.value = (data.instagram_handle_display || "").replace(/^@/, "");
+      var v = data.photos_version || Date.now();
+      previewGreen.src = "images/reyna-green.jpg?v=" + v;
+      previewBlack.src = "images/reyna-black.jpg?v=" + v;
     } catch (e) {
       showStatus(statusBox, "err", "No se pudieron cargar los datos actuales. Puedes escribirlos de nuevo igual.");
     }
@@ -305,12 +308,23 @@
       var email = fieldEmail.value.trim();
       var igHandle = fieldInstagram.value.trim().replace(/^@/, "");
 
+      var photosChanged = !!(fileGreen.files[0] || fileBlack.files[0]);
+      var existingVersion = "1";
+      try {
+        var curR = await fetch("data/contact.json", { cache: "no-store" });
+        if (curR.ok) {
+          var curData = await curR.json();
+          if (curData.photos_version) existingVersion = curData.photos_version;
+        }
+      } catch (e) { /* usa el valor por defecto si esto falla */ }
+
       var contactData = {
         whatsapp: waDigits,
         whatsapp_display: waDisplay,
         email: email,
         instagram_handle_display: "@" + igHandle,
-        instagram_url: "https://www.instagram.com/" + igHandle + "/"
+        instagram_url: "https://www.instagram.com/" + igHandle + "/",
+        photos_version: photosChanged ? String(Date.now()) : existingVersion
       };
       var jsonB64 = btoa(unescape(encodeURIComponent(JSON.stringify(contactData, null, 2))));
       await putFile("data/contact.json", jsonB64, "Actualizar datos de contacto desde el panel");

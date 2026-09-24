@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de administración | RCC Consultores</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="images/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  body{ background: var(--c7-ivory); min-height:100vh; }
+  .admin-wrap{ max-width: 640px; margin: 0 auto; padding: 3rem var(--edge) 5rem; }
+  .admin-logo{ display:flex; align-items:center; gap:.8rem; margin-bottom: 2.5rem; }
+  .admin-logo img{ width:42px; height:42px; border-radius:50%; }
+  .admin-logo span{ font-family: var(--font-display); font-size:1.05rem; letter-spacing:.02em; color: var(--olive-deep); }
+  .admin-card{ background: var(--white); border: 1px solid rgba(132,135,99,.18); border-radius: 14px; padding: 2rem; margin-bottom: 1.5rem; }
+  .admin-card h2{ font-family: var(--font-display); font-size:1.15rem; color: var(--olive-deep); margin-bottom:.4rem; font-weight:600; }
+  .admin-card p.admin-sub{ font-size:.85rem; color:#7a7968; margin-bottom:1.5rem; }
+  .admin-field{ margin-bottom: 1.3rem; }
+  .admin-field label{ display:block; font-family: var(--font-display); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color: var(--c1-olive); margin-bottom:.5rem; }
+  .admin-field input[type=text], .admin-field input[type=email], .admin-field input[type=tel]{
+    width:100%; padding:.8rem 1rem; border:1px solid rgba(132,135,99,.3); border-radius:8px;
+    font-family: var(--font-body); font-size:.95rem; background: var(--c7-ivory); color:#2c2b22;
+  }
+  .admin-field input:focus{ outline:2px solid var(--c2-gold); outline-offset:1px; }
+  .admin-hint{ font-size:.76rem; color:#8a8977; margin-top:.4rem; }
+  .photo-row{ display:flex; align-items:center; gap:1.2rem; }
+  .photo-preview{ width:64px; height:80px; object-fit:cover; border-radius:8px; border:1px solid rgba(132,135,99,.25); flex-shrink:0; background:#eee; }
+  .photo-upload label.file-btn{
+    display:inline-block; font-family: var(--font-display); font-size:.78rem; letter-spacing:.05em; text-transform:uppercase;
+    padding:.6rem 1.1rem; border:1px solid var(--olive-deep); border-radius: var(--radius); color: var(--olive-deep); cursor:pointer;
+    transition: background .25s var(--ease), color .25s var(--ease);
+  }
+  .photo-upload label.file-btn:hover{ background: var(--olive-deep); color:var(--c7-ivory); }
+  .photo-upload input[type=file]{ display:none; }
+  .photo-filename{ font-size:.78rem; color:#7a7968; margin-top:.4rem; }
+  .admin-save{
+    width:100%; padding:1rem; border:none; border-radius: var(--radius); background: var(--c2-gold); color: var(--olive-deep);
+    font-family: var(--font-display); font-size:.9rem; letter-spacing:.05em; text-transform:uppercase; cursor:pointer;
+    transition: background .25s var(--ease), transform .2s var(--ease);
+  }
+  .admin-save:hover:not(:disabled){ background: var(--gold-light); transform: translateY(-1px); }
+  .admin-save:disabled{ opacity:.55; cursor:not-allowed; }
+  .admin-status{ margin-top:1rem; font-size:.86rem; padding:.8rem 1rem; border-radius:8px; display:none; }
+  .admin-status.ok{ display:block; background:#eaf3e4; color:#3e6b2e; }
+  .admin-status.err{ display:block; background:#fbeaea; color:#a33; }
+  .admin-status.loading{ display:block; background:#f0efe8; color:#6b6a5a; }
+  .gate-card{ background: var(--white); border: 1px solid rgba(132,135,99,.18); border-radius: 14px; padding: 2.5rem; text-align:center; }
+  .gate-card p{ font-size:.9rem; color:#5c5b4e; margin-bottom:1.5rem; line-height:1.6; }
+  .gate-card input{ width:100%; padding:.9rem 1rem; border:1px solid rgba(132,135,99,.3); border-radius:8px; margin-bottom:1rem; text-align:center; font-family: var(--font-body); }
+  #logoutLink{ display:block; text-align:center; margin-top:1.5rem; font-size:.8rem; color:#9a998a; text-decoration:underline; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<div class="admin-wrap">
+  <div class="admin-logo">
+    <img src="images/badge-olive.png" alt="">
+    <span>RCC Consultores — Panel de administración</span>
+  </div>
+
+  <!-- ============ PANTALLA DE ACCESO (una sola vez por dispositivo) ============ -->
+  <div id="gateScreen" class="gate-card">
+    <h2 style="font-family:var(--font-display); font-size:1.1rem; color:var(--olive-deep); margin-bottom:.8rem;">Acceso al panel</h2>
+    <p>Pega aquí el código de acceso que te compartió tu diseñadora. Solo tienes que hacerlo una vez en este dispositivo.</p>
+    <input type="password" id="codeInput" placeholder="Código de acceso">
+    <button type="button" class="admin-save" id="unlockBtn">Entrar</button>
+    <div id="gateError" class="admin-status err" style="display:none; margin-top:1rem;"></div>
+  </div>
+
+  <!-- ============ PANEL PRINCIPAL ============ -->
+  <div id="panelScreen" style="display:none;">
+
+    <div class="admin-card">
+      <h2>Datos de contacto</h2>
+      <p class="admin-sub">Estos datos se actualizan en todas las páginas del sitio automáticamente.</p>
+
+      <div class="admin-field">
+        <label>WhatsApp</label>
+        <input type="tel" id="fieldWhatsapp" placeholder="0982 393 530">
+        <p class="admin-hint">Solo números, con el 0 inicial. Ej: 0982393530</p>
+      </div>
+
+      <div class="admin-field">
+        <label>Correo electrónico</label>
+        <input type="email" id="fieldEmail" placeholder="info@rcc-consultores.com">
+      </div>
+
+      <div class="admin-field">
+        <label>Usuario de Instagram</label>
+        <input type="text" id="fieldInstagram" placeholder="rcc_consultores">
+        <p class="admin-hint">Sin la @, solo el nombre de usuario.</p>
+      </div>
+    </div>
+
+    <div class="admin-card">
+      <h2>Fotos</h2>
+      <p class="admin-sub">Formato JPG, ideal en orientación vertical (retrato).</p>
+
+      <div class="admin-field">
+        <label>Foto de Inicio y Nosotros</label>
+        <div class="photo-row">
+          <img id="previewGreen" class="photo-preview" src="images/reyna-green.jpg" alt="">
+          <div class="photo-upload">
+            <label class="file-btn" for="fileGreen">Elegir foto nueva</label>
+            <input type="file" id="fileGreen" accept="image/jpeg,image/jpg">
+            <p class="photo-filename" id="filenameGreen"></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-field" style="margin-bottom:0;">
+        <label>Foto de Servicios</label>
+        <div class="photo-row">
+          <img id="previewBlack" class="photo-preview" src="images/reyna-black.jpg" alt="">
+          <div class="photo-upload">
+            <label class="file-btn" for="fileBlack">Elegir foto nueva</label>
+            <input type="file" id="fileBlack" accept="image/jpeg,image/jpg">
+            <p class="photo-filename" id="filenameBlack"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="admin-save" id="saveBtn">Guardar cambios</button>
+    <div id="statusBox" class="admin-status"></div>
+
+    <span id="logoutLink">Cerrar acceso en este dispositivo</span>
+  </div>
+</div>
+
+<script>
+(function () {
+  var OWNER = "reynacontrerasweb";
+  var REPO = "reynacontrerasweb.github.io";
+  var API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/";
+  var STORAGE_KEY = "rcc_admin_code";
+
+  var gateScreen = document.getElementById("gateScreen");
+  var panelScreen = document.getElementById("panelScreen");
+  var codeInput = document.getElementById("codeInput");
+  var unlockBtn = document.getElementById("unlockBtn");
+  var gateError = document.getElementById("gateError");
+  var logoutLink = document.getElementById("logoutLink");
+
+  var fieldWhatsapp = document.getElementById("fieldWhatsapp");
+  var fieldEmail = document.getElementById("fieldEmail");
+  var fieldInstagram = document.getElementById("fieldInstagram");
+  var fileGreen = document.getElementById("fileGreen");
+  var fileBlack = document.getElementById("fileBlack");
+  var previewGreen = document.getElementById("previewGreen");
+  var previewBlack = document.getElementById("previewBlack");
+  var filenameGreen = document.getElementById("filenameGreen");
+  var filenameBlack = document.getElementById("filenameBlack");
+  var saveBtn = document.getElementById("saveBtn");
+  var statusBox = document.getElementById("statusBox");
+
+  function getCode() {
+    try { return window.localStorage.getItem(STORAGE_KEY) || ""; } catch (e) { return ""; }
+  }
+  function setCode(v) {
+    try { window.localStorage.setItem(STORAGE_KEY, v); } catch (e) { /* ignore */ }
+  }
+  function clearCode() {
+    try { window.localStorage.removeItem(STORAGE_KEY); } catch (e) { /* ignore */ }
+  }
+
+  function ghHeaders() {
+    return {
+      "Authorization": "Bearer " + getCode(),
+      "Accept": "application/vnd.github+json"
+    };
+  }
+
+  function formatWhatsappDigits(raw) {
+    var digits = raw.replace(/\D/g, "");
+    if (digits.indexOf("0") === 0) digits = digits.substring(1);
+    if (digits.indexOf("593") !== 0) digits = "593" + digits;
+    return digits;
+  }
+  function formatWhatsappDisplay(raw) {
+    var digits = raw.replace(/\D/g, "");
+    if (digits.indexOf("593") === 0) digits = "0" + digits.substring(3);
+    else if (digits.indexOf("0") !== 0) digits = "0" + digits;
+    if (digits.length === 10) return digits.slice(0,4) + " " + digits.slice(4,7) + " " + digits.slice(7);
+    return raw;
+  }
+
+  function showStatus(box, type, msg) {
+    box.className = "admin-status " + type;
+    box.textContent = msg;
+  }
+
+  async function loadContactData() {
+    try {
+      var r = await fetch("data/contact.json", { cache: "no-store" });
+      if (!r.ok) throw new Error("no data");
+      var data = await r.json();
+      fieldWhatsapp.value = data.whatsapp_display || "";
+      fieldEmail.value = data.email || "";
+      fieldInstagram.value = (data.instagram_handle_display || "").replace(/^@/, "");
+    } catch (e) {
+      showStatus(statusBox, "err", "No se pudieron cargar los datos actuales. Puedes escribirlos de nuevo igual.");
+    }
+  }
+
+  async function verifyAccess() {
+    try {
+      var r = await fetch(API + "data/contact.json", { headers: ghHeaders() });
+      return r.ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function tryUnlock(code) {
+    setCode(code);
+    unlockBtn.disabled = true;
+    unlockBtn.textContent = "Verificando...";
+    var ok = await verifyAccess();
+    unlockBtn.disabled = false;
+    unlockBtn.textContent = "Entrar";
+    if (ok) {
+      gateScreen.style.display = "none";
+      panelScreen.style.display = "block";
+      loadContactData();
+    } else {
+      clearCode();
+      gateError.style.display = "block";
+      gateError.textContent = "Código incorrecto. Verifícalo e intenta de nuevo.";
+    }
+  }
+
+  unlockBtn.addEventListener("click", function () {
+    var v = codeInput.value.trim();
+    if (!v) return;
+    gateError.style.display = "none";
+    tryUnlock(v);
+  });
+  codeInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") unlockBtn.click();
+  });
+
+  logoutLink.addEventListener("click", function () {
+    clearCode();
+    panelScreen.style.display = "none";
+    gateScreen.style.display = "block";
+    codeInput.value = "";
+  });
+
+  fileGreen.addEventListener("change", function () {
+    if (this.files[0]) {
+      filenameGreen.textContent = this.files[0].name;
+      previewGreen.src = URL.createObjectURL(this.files[0]);
+    }
+  });
+  fileBlack.addEventListener("change", function () {
+    if (this.files[0]) {
+      filenameBlack.textContent = this.files[0].name;
+      previewBlack.src = URL.createObjectURL(this.files[0]);
+    }
+  });
+
+  function fileToBase64(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () { resolve(reader.result.split(",")[1]); };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function getSha(path) {
+    var r = await fetch(API + path, { headers: ghHeaders() });
+    if (!r.ok) return null;
+    var j = await r.json();
+    return j.sha;
+  }
+
+  async function putFile(path, base64Content, message) {
+    var sha = await getSha(path);
+    var body = { message: message, content: base64Content };
+    if (sha) body.sha = sha;
+    var r = await fetch(API + path, {
+      method: "PUT",
+      headers: Object.assign({ "Content-Type": "application/json" }, ghHeaders()),
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) {
+      var errText = await r.text();
+      throw new Error("Error al guardar " + path + ": " + r.status + " " + errText);
+    }
+  }
+
+  saveBtn.addEventListener("click", async function () {
+    saveBtn.disabled = true;
+    showStatus(statusBox, "loading", "Guardando cambios...");
+
+    try {
+      var waDigits = formatWhatsappDigits(fieldWhatsapp.value);
+      var waDisplay = formatWhatsappDisplay(fieldWhatsapp.value);
+      var email = fieldEmail.value.trim();
+      var igHandle = fieldInstagram.value.trim().replace(/^@/, "");
+
+      var contactData = {
+        whatsapp: waDigits,
+        whatsapp_display: waDisplay,
+        email: email,
+        instagram_handle_display: "@" + igHandle,
+        instagram_url: "https://www.instagram.com/" + igHandle + "/"
+      };
+      var jsonB64 = btoa(unescape(encodeURIComponent(JSON.stringify(contactData, null, 2))));
+      await putFile("data/contact.json", jsonB64, "Actualizar datos de contacto desde el panel");
+
+      if (fileGreen.files[0]) {
+        var b64Green = await fileToBase64(fileGreen.files[0]);
+        await putFile("images/reyna-green.jpg", b64Green, "Actualizar foto de Inicio/Nosotros desde el panel");
+      }
+      if (fileBlack.files[0]) {
+        var b64Black = await fileToBase64(fileBlack.files[0]);
+        await putFile("images/reyna-black.jpg", b64Black, "Actualizar foto de Servicios desde el panel");
+      }
+
+      showStatus(statusBox, "ok", "Listo. Tu sitio se actualiza solo en 1 o 2 minutos.");
+      fileGreen.value = ""; fileBlack.value = "";
+      filenameGreen.textContent = ""; filenameBlack.textContent = "";
+    } catch (err) {
+      showStatus(statusBox, "err", "Algo falló al guardar. Vuelve a intentar en un momento.");
+    } finally {
+      saveBtn.disabled = false;
+    }
+  });
+
+  /* ---------- Al cargar ---------- */
+  (async function init() {
+    if (getCode()) {
+      var ok = await verifyAccess();
+      if (ok) {
+        gateScreen.style.display = "none";
+        panelScreen.style.display = "block";
+        loadContactData();
+        return;
+      } else {
+        clearCode();
+      }
+    }
+    gateScreen.style.display = "block";
+  })();
+})();
+</script>
+
+</body>
+</html>

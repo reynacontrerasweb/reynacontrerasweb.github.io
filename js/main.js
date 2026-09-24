@@ -196,4 +196,49 @@
   } catch (err) {
     /* if anything above fails, the page still works normally without the banner */
   }
+
+  /* ---------- Datos de contacto dinámicos (editables desde admin.html) ---------- */
+  try {
+    fetch("data/contact.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) return;
+
+        function replaceTrailingText(el, oldExact, newText) {
+          for (var i = el.childNodes.length - 1; i >= 0; i--) {
+            var n = el.childNodes[i];
+            if (n.nodeType === 3 && n.textContent.trim() === oldExact) {
+              n.textContent = newText;
+              return;
+            }
+          }
+        }
+
+        var OLD_PHONE = "0982 393 530";
+        var OLD_EMAIL = "info@rcc-consultores.com";
+        var OLD_IG = "@rcc_consultores";
+
+        document.querySelectorAll('a[href*="wa.me/"]').forEach(function (a) {
+          a.href = "https://wa.me/" + data.whatsapp;
+          replaceTrailingText(a, OLD_PHONE, data.whatsapp_display);
+        });
+        document.querySelectorAll('a[href^="tel:"]').forEach(function (a) {
+          a.href = "tel:+" + data.whatsapp;
+          replaceTrailingText(a, OLD_PHONE, data.whatsapp_display);
+        });
+        document.querySelectorAll('a[href^="mailto:"]').forEach(function (a) {
+          a.href = "mailto:" + data.email;
+          replaceTrailingText(a, OLD_EMAIL, data.email);
+        });
+        document.querySelectorAll('a[href*="instagram.com/"]').forEach(function (a) {
+          a.href = data.instagram_url;
+          replaceTrailingText(a, OLD_IG, data.instagram_handle_display);
+        });
+        var form = document.querySelector(".contacto-form");
+        if (form && form.action && form.action.indexOf("formsubmit.co/") !== -1) {
+          form.action = "https://formsubmit.co/" + data.email;
+        }
+      })
+      .catch(function () { /* si falla, la página se queda con los valores fijos actuales */ });
+  } catch (err) { /* nunca romper el resto del sitio por esto */ }
 })();

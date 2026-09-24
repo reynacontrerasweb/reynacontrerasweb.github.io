@@ -44,14 +44,30 @@
   }
   .admin-save:hover:not(:disabled){ background: var(--gold-light); transform: translateY(-1px); }
   .admin-save:disabled{ opacity:.55; cursor:not-allowed; }
+  .admin-save.secondary{ background: var(--white); border: 1px solid var(--olive-deep); color: var(--olive-deep); }
+  .admin-save.secondary:hover:not(:disabled){ background: var(--olive-deep); color: var(--c7-ivory); }
   .admin-status{ margin-top:1rem; font-size:.86rem; padding:.8rem 1rem; border-radius:8px; display:none; }
   .admin-status.ok{ display:block; background:#eaf3e4; color:#3e6b2e; }
   .admin-status.err{ display:block; background:#fbeaea; color:#a33; }
   .admin-status.loading{ display:block; background:#f0efe8; color:#6b6a5a; }
   .gate-card{ background: var(--white); border: 1px solid rgba(132,135,99,.18); border-radius: 14px; padding: 2.5rem; text-align:center; }
   .gate-card p{ font-size:.9rem; color:#5c5b4e; margin-bottom:1.5rem; line-height:1.6; }
-  .gate-card input{ width:100%; padding:.9rem 1rem; border:1px solid rgba(132,135,99,.3); border-radius:8px; margin-bottom:1rem; text-align:center; font-family: var(--font-body); }
-  #logoutLink{ display:block; text-align:center; margin-top:1.5rem; font-size:.8rem; color:#9a998a; text-decoration:underline; cursor:pointer; }
+
+  .pass-wrap{ position:relative; margin-bottom:1rem; }
+  .pass-wrap input{
+    width:100%; padding:.9rem 3rem .9rem 1rem; border:1px solid rgba(132,135,99,.3); border-radius:8px;
+    text-align:center; font-family: var(--font-body); font-size:.95rem; box-sizing:border-box;
+  }
+  .eye-toggle{
+    position:absolute; right:.6rem; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer;
+    padding:.4rem; color:#8a8977; display:flex; align-items:center; justify-content:center;
+  }
+  .eye-toggle:hover{ color: var(--olive-deep); }
+  .eye-toggle svg{ width:19px; height:19px; }
+
+  #logoutLink, #changePassLink{ display:block; text-align:center; margin-top:1.2rem; font-size:.8rem; color:#9a998a; text-decoration:underline; cursor:pointer; }
+  #changePassBox{ display:none; margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid rgba(132,135,99,.18); }
+  #changePassBox h3{ font-family: var(--font-display); font-size:.95rem; color: var(--olive-deep); margin-bottom:1rem; font-weight:600; text-align:center; }
 </style>
 </head>
 <body>
@@ -62,11 +78,16 @@
     <span>RCC Consultores — Panel de administración</span>
   </div>
 
-  <!-- ============ PANTALLA DE ACCESO (una sola vez por dispositivo) ============ -->
+  <!-- ============ PANTALLA DE ACCESO ============ -->
   <div id="gateScreen" class="gate-card">
     <h2 style="font-family:var(--font-display); font-size:1.1rem; color:var(--olive-deep); margin-bottom:.8rem;">Acceso al panel</h2>
-    <p>Pega aquí el código de acceso que te compartió tu diseñadora. Solo tienes que hacerlo una vez en este dispositivo.</p>
-    <input type="password" id="codeInput" placeholder="Código de acceso">
+    <p>Escribe tu contraseña para entrar. Solo tienes que hacerlo una vez en este dispositivo.</p>
+    <div class="pass-wrap">
+      <input type="password" id="codeInput" placeholder="Contraseña" autocomplete="off">
+      <button type="button" class="eye-toggle" data-target="codeInput" aria-label="Mostrar contraseña">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
     <button type="button" class="admin-save" id="unlockBtn">Entrar</button>
     <div id="gateError" class="admin-status err" style="display:none; margin-top:1rem;"></div>
   </div>
@@ -129,6 +150,19 @@
     <div id="statusBox" class="admin-status"></div>
 
     <span id="logoutLink">Cerrar acceso en este dispositivo</span>
+    <span id="changePassLink">Cambiar contraseña</span>
+
+    <div id="changePassBox">
+      <h3>Nueva contraseña</h3>
+      <div class="pass-wrap">
+        <input type="password" id="newPassInput" placeholder="Nueva contraseña" autocomplete="off">
+        <button type="button" class="eye-toggle" data-target="newPassInput" aria-label="Mostrar contraseña">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <button type="button" class="admin-save secondary" id="savePassBtn">Guardar nueva contraseña</button>
+      <div id="passStatusBox" class="admin-status"></div>
+    </div>
   </div>
 </div>
 
@@ -145,6 +179,11 @@
   var unlockBtn = document.getElementById("unlockBtn");
   var gateError = document.getElementById("gateError");
   var logoutLink = document.getElementById("logoutLink");
+  var changePassLink = document.getElementById("changePassLink");
+  var changePassBox = document.getElementById("changePassBox");
+  var newPassInput = document.getElementById("newPassInput");
+  var savePassBtn = document.getElementById("savePassBtn");
+  var passStatusBox = document.getElementById("passStatusBox");
 
   var fieldWhatsapp = document.getElementById("fieldWhatsapp");
   var fieldEmail = document.getElementById("fieldEmail");
@@ -158,6 +197,52 @@
   var saveBtn = document.getElementById("saveBtn");
   var statusBox = document.getElementById("statusBox");
 
+  /* ---------- Ojito para mostrar/ocultar contraseña ---------- */
+  document.querySelectorAll(".eye-toggle").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var input = document.getElementById(btn.getAttribute("data-target"));
+      input.type = input.type === "password" ? "text" : "password";
+    });
+  });
+
+  /* ---------- Cifrado: la contraseña simple nunca se guarda en texto plano,
+     solo desbloquea (o vuelve a cifrar) el código real de acceso ---------- */
+  function b64FromBytes(bytes) {
+    var bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+  function bytesFromB64(b64) {
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  }
+  async function deriveKey(password, saltBytes) {
+    var enc = new TextEncoder();
+    var keyMaterial = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt: saltBytes, iterations: 150000, hash: "SHA-256" },
+      keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+    );
+  }
+  async function encryptToken(password, token) {
+    var salt = crypto.getRandomValues(new Uint8Array(16));
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    var key = await deriveKey(password, salt);
+    var enc = new TextEncoder();
+    var cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, enc.encode(token));
+    return { salt: b64FromBytes(salt), iv: b64FromBytes(iv), data: b64FromBytes(new Uint8Array(cipher)) };
+  }
+  async function decryptToken(password, authObj) {
+    var salt = bytesFromB64(authObj.salt);
+    var iv = bytesFromB64(authObj.iv);
+    var data = bytesFromB64(authObj.data);
+    var key = await deriveKey(password, salt);
+    var plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, data);
+    return new TextDecoder().decode(plain);
+  }
+
   function getCode() {
     try { return window.localStorage.getItem(STORAGE_KEY) || ""; } catch (e) { return ""; }
   }
@@ -169,10 +254,7 @@
   }
 
   function ghHeaders() {
-    return {
-      "Authorization": "Bearer " + getCode(),
-      "Accept": "application/vnd.github+json"
-    };
+    return { "Authorization": "Bearer " + getCode(), "Accept": "application/vnd.github+json" };
   }
 
   function formatWhatsappDigits(raw) {
@@ -219,26 +301,36 @@
     }
   }
 
-  async function tryUnlock(code) {
-    setCode(code);
+  function openPanel() {
+    gateScreen.style.display = "none";
+    panelScreen.style.display = "block";
+    loadContactData();
+  }
+
+  async function tryUnlock(password) {
     unlockBtn.disabled = true;
     unlockBtn.textContent = "Verificando...";
-    var ok = await verifyAccess();
-    unlockBtn.disabled = false;
-    unlockBtn.textContent = "Entrar";
-    if (ok) {
-      gateScreen.style.display = "none";
-      panelScreen.style.display = "block";
-      loadContactData();
-    } else {
+    try {
+      var r = await fetch("data/auth.json", { cache: "no-store" });
+      if (!r.ok) throw new Error("no auth file");
+      var authObj = await r.json();
+      var token = await decryptToken(password, authObj);
+      setCode(token);
+      var ok = await verifyAccess();
+      if (!ok) throw new Error("token invalido");
+      openPanel();
+    } catch (e) {
       clearCode();
       gateError.style.display = "block";
-      gateError.textContent = "Código incorrecto. Verifícalo e intenta de nuevo.";
+      gateError.textContent = "Contraseña incorrecta. Verifícala e intenta de nuevo.";
+    } finally {
+      unlockBtn.disabled = false;
+      unlockBtn.textContent = "Entrar";
     }
   }
 
   unlockBtn.addEventListener("click", function () {
-    var v = codeInput.value.trim();
+    var v = codeInput.value;
     if (!v) return;
     gateError.style.display = "none";
     tryUnlock(v);
@@ -252,6 +344,35 @@
     panelScreen.style.display = "none";
     gateScreen.style.display = "block";
     codeInput.value = "";
+    changePassBox.style.display = "none";
+  });
+
+  changePassLink.addEventListener("click", function () {
+    changePassBox.style.display = changePassBox.style.display === "block" ? "none" : "block";
+    newPassInput.value = "";
+    passStatusBox.style.display = "none";
+  });
+
+  savePassBtn.addEventListener("click", async function () {
+    var newPass = newPassInput.value;
+    if (!newPass || newPass.length < 4) {
+      showStatus(passStatusBox, "err", "Elige una contraseña de al menos 4 caracteres.");
+      return;
+    }
+    savePassBtn.disabled = true;
+    showStatus(passStatusBox, "loading", "Guardando nueva contraseña...");
+    try {
+      var currentToken = getCode();
+      var newAuthObj = await encryptToken(newPass, currentToken);
+      var jsonB64 = b64FromBytes(new TextEncoder().encode(JSON.stringify(newAuthObj)));
+      await putFile("data/auth.json", jsonB64, "Actualizar contraseña del panel");
+      showStatus(passStatusBox, "ok", "Contraseña actualizada. La próxima vez que entres desde otro dispositivo, usa la nueva.");
+      newPassInput.value = "";
+    } catch (err) {
+      showStatus(passStatusBox, "err", "No se pudo guardar la nueva contraseña. Intenta de nuevo.");
+    } finally {
+      savePassBtn.disabled = false;
+    }
   });
 
   fileGreen.addEventListener("change", function () {
@@ -326,8 +447,8 @@
         instagram_url: "https://www.instagram.com/" + igHandle + "/",
         photos_version: photosChanged ? String(Date.now()) : existingVersion
       };
-      var jsonB64 = btoa(unescape(encodeURIComponent(JSON.stringify(contactData, null, 2))));
-      await putFile("data/contact.json", jsonB64, "Actualizar datos de contacto desde el panel");
+      var jsonB64c = btoa(unescape(encodeURIComponent(JSON.stringify(contactData, null, 2))));
+      await putFile("data/contact.json", jsonB64c, "Actualizar datos de contacto desde el panel");
 
       if (fileGreen.files[0]) {
         var b64Green = await fileToBase64(fileGreen.files[0]);
@@ -352,14 +473,8 @@
   (async function init() {
     if (getCode()) {
       var ok = await verifyAccess();
-      if (ok) {
-        gateScreen.style.display = "none";
-        panelScreen.style.display = "block";
-        loadContactData();
-        return;
-      } else {
-        clearCode();
-      }
+      if (ok) { openPanel(); return; }
+      clearCode();
     }
     gateScreen.style.display = "block";
   })();

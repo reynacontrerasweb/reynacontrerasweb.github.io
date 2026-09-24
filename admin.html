@@ -274,6 +274,7 @@
   function showStatus(box, type, msg) {
     box.className = "admin-status " + type;
     box.textContent = msg;
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   async function loadContactData() {
